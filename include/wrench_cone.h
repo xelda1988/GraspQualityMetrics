@@ -36,17 +36,75 @@ public:
     void setContact(Vector6d & contact){
         contact_=contact;
     }
-    setFingerId(uint fingerId){
+    void setFingerId(uint fingerId){
         fingerId_=fingerId;
+    }
+
+    void setTorqueArm(double torqueArm){
+
+        torqueArm_=torqueArm;
+
     }
 
 
     void computePrimitiveWrenches();
 
+    std::vector<Vector6d> getPrimitiveWrenches(){
+
+        return primitiveWrenches_;
+    }
+
     //void getPrimitiveWrenches();
 
     //Constr
-    WrenchCone();
+    WrenchCone(){}
+
+};
+
+
+class WrenchConesAll{
+
+private:
+
+    std::vector<WrenchCone> allCones_;
+    std::vector<double> allWrenches_; //easily mappable to double array or shared_ptr
+    std::vector<double> allForces_;//For visualization of pure force hull
+    std::vector<double> allTorques_; //For visualization of pure torque hull
+    uint nrWrenches_;
+    Grasp grasp_;
+
+public:
+
+    void setGrasp(const Grasp & grasp){
+        grasp_=grasp;
+    }
+
+    void computeAllWrenchCones(uint nrFacets);
+
+    std::vector<double> getAllWrenches()
+    {
+        return allWrenches_;
+    }
+
+    std::vector<double> getAllForces()
+    {
+        return allForces_;
+    }
+
+    std::vector<double> getAllTorques()
+    {
+        return allTorques_;
+    }
+
+    uint getNrWrenches()
+    {
+        return nrWrenches_;
+
+    }
+
+    WrenchConesAll(const Grasp & grasp){
+        grasp_=grasp;
+    }
 
 };
 

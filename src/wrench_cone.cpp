@@ -1,4 +1,4 @@
-#include "include/wrench_cone.h"
+#include "wrench_cone.h"
 
 
 //from torquearm
@@ -56,13 +56,65 @@ void WrenchCone::computePrimitiveWrenches(){
 
         //current force for ith facet
 
-        force = fn + fx*friction_*sin(2*M_PI*i/nrFacets_) + fy*friction_*sin(2*M_PI*i/nrFacets_);
+        force = fn + fx*friction_*cos(2*M_PI*i/nrFacets_) + fy*friction_*sin(2*M_PI*i/nrFacets_);
         torque = ps.cross(force);
 
         currWrench << force,torque;
         prWrenches.push_back(currWrench);
 
     }
+
     primitiveWrenches_=prWrenches;
 
+}
+
+void WrenchConesAll::computeAllWrenchCones(uint nrFacets){
+
+    double friction=grasp_.getFriction();
+    double maxTorqueArm=grasp_.getMaxTorqueArm();
+
+    if(allWrenches_.size()!=0) {
+        std::cout << "Clearing already computed wrenchcones" << std::endl;
+        allWrenches_.clear();
+        allCones_.clear();
+        allForces_.clear();
+        allTorques_.clear();
+    }
+
+    nrWrenches_=0;
+
+    for(int i=0; i < grasp_.getNrContacts(); i++){
+
+        Vector6d contact=grasp_.getContacts().at(i);
+        WrenchCone wrenchCone;
+
+        wrenchCone.setFriction(friction);
+        wrenchCone.setNrFactes(nrFacets);
+        wrenchCone.setContact(contact);
+        wrenchCone.setTorqueArm(maxTorqueArm);
+
+        wrenchCone.computePrimitiveWrenches();
+        allCones_.push_back(wrenchCone);
+
+        std::vector<Vector6d> prWrenches= wrenchCone.getPrimitiveWrenches();
+
+        nrWrenches_ += prWrenches.size();
+
+        for(int j=0; j < prWrenches.size(); j++){
+            Vector6d currWrench=prWrenches.at(j);
+            for(int k=0; k < 6; k++){
+                allWrenches_.push_back(currWrench(k));
+            }
+
+            for(int k=0; k < 3; k++){
+                allForces_.push_back(currWrench(k));
+            }
+
+            for(int k=3; k < 6; k++){
+                allTorques_.push_back(currWrench(k));
+            }
+
+
+        }
+    }
 }

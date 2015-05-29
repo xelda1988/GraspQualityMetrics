@@ -36,6 +36,24 @@ public:
     void addContact(const Vector6d & contact){
         contacts_.push_back(contact);
     }
+
+    double getMaxTorqueArm();
+
+    double getFriction(){
+
+        return friction_;
+    }
+
+    std::vector<Vector6d> getContacts(){
+        return contacts_;
+    }
+
+    uint getNrContacts()
+    {
+        return contacts_.size();
+
+    }
+
     //Constr
     Grasp(): nr_contacts_(0), id_(0), friction_(0.5){}
     //Destr
