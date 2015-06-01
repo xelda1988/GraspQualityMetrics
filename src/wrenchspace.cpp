@@ -12,6 +12,7 @@ DiscreteWrenchSpace::DiscreteWrenchSpace() : ch_computed_(false),num_wrenches_(0
 DiscreteWrenchSpace::DiscreteWrenchSpace(uint dimension) : ch_computed_(false),num_wrenches_(0),num_vtx_(0),num_facets_(0)
 {
 //  type_=Discrete;
+    dimension_=dimension;
 }
 //---------------------------------------------------------------------------------
 DiscreteWrenchSpace::DiscreteWrenchSpace(uint dimension,SharedDoublePtr wrenches, uint num_wrenches) : ch_computed_(false),num_wrenches_(0),num_vtx_(0),num_facets_(0)
@@ -20,6 +21,7 @@ DiscreteWrenchSpace::DiscreteWrenchSpace(uint dimension,SharedDoublePtr wrenches
   assert(wrenches.get() != NULL);
   wrenches_=wrenches;
   num_wrenches_=num_wrenches;
+  dimension_=dimension;
 //  type_=Discrete;
 }
 //--------------------------------------------------------------------------
@@ -99,6 +101,10 @@ void DiscreteWrenchSpace::computeConvexHull()
   num_vtx_=conv_hull_.vertexCount();
   num_facets_=conv_hull_.facetCount();
 
+  //test
+
+  //
+
   facetT* curr_f=conv_hull_.beginFacet().getFacetT();
   r_oc_insphere_=-(curr_f->offset);
   for(uint i=0;i< num_facets_;i++)
@@ -161,4 +167,117 @@ bool DiscreteWrenchSpace::writeToFile(const std::string& path)const
     }
   fclose (hp);
   return true;
+}
+
+bool DiscreteWrenchSpace::writeToOffFile(const std::string& path)const
+{
+  if (!ch_computed_)
+    {
+  std::cout<<"Warning in DiscreteWrenchSpace::writeToFile(const std::string& path)const - Convex hull not computed, cannot write to file"<<std::endl;
+  return false;
+    }
+
+  remove(path.c_str());
+  FILE* hp=fopen (path.c_str(),"a");
+  if(!hp)
+    {
+  std::cout<<"Warning in DiscreteWrenchSpace::writeToFile(const std::string& path)const - Couldn't write to file"<<std::endl;
+  return false;
+    }
+
+  vertexT* curr_v=conv_hull_.beginVertex().getVertexT();
+
+  fprintf(hp, "OFF \n%i %i 0\n", conv_hull_.vertexCount(), conv_hull_.facetCount());
+
+  for(uint i=0; i<conv_hull_.vertexCount(); i++){
+      std::cout << "Id: " <<  i << " - " << qh_pointid(curr_v->point) <<  std::endl;
+      curr_v=curr_v->next;
+  }
+  curr_v=conv_hull_.beginVertex().getVertexT();
+
+  for(uint i=0; i < conv_hull_.vertexCount(); i++){
+
+      //if (dimension_==3)
+//order the vertices by id! bug in qhull???
+            //if(i==4)  fprintf(hp, "0 0 0\n");
+          for(uint j=0; j< conv_hull_.vertexCount(); j++){
+            //std::cout << i << std::endl;
+
+              if(i==qh_pointid(curr_v->point)){
+                  //writing dummy index at place nr 4, no idea check if it changes for other hulls
+                  //fprintf(hp, "%f %f %f %i\n",(curr_v->point)[0],(curr_v->point)[1],(curr_v->point)[2],curr_v->id);
+//std::cout << "POINTID " << qh_pointid(curr_v->point) << std::endl;
+                  fprintf(hp, "%f %f %f \n",(curr_v->point)[0],(curr_v->point)[1],(curr_v->point)[2]);
+
+                  break;
+              }
+              curr_v=curr_v->next;
+          }
+          curr_v=conv_hull_.beginVertex().getVertexT();
+  }
+
+  facetT* curr_f=conv_hull_.beginFacet().getFacetT();
+
+  for(uint i=0;i< conv_hull_.facetCount();i++)
+    {
+      if (dimension_==3){
+
+          setT* vertSet=curr_f->vertices;
+          fprintf(hp, "%i ",vertSet->maxsize);
+          for(int j=0; j < vertSet->maxsize; j++){
+
+              //writing fck vertexptr
+              //setelemT* currV = ;
+              vertexT* currVert = (vertexT*) vertSet->e[j].p;
+              fprintf(hp, "%i ",qh_pointid(currVert->point));
+
+          }
+          fprintf(hp, "\n");
+      }
+
+    //fprintf(hp, "% f % f % f % f  \n",-(curr_f->vertices)[0],-(curr_f->normal)[1],-(curr_f->normal)[2],-(curr_f->offset));
+  else
+    {
+      std::cout<<"Warning in DiscreteWrenchSpace::writeToFile(const std::string& path)const - cann only write 3-D facets to off sfile!"<<std::endl;
+      return false;
+    }
+  curr_f=curr_f->next;
+    }
+  fclose (hp);
+
+  return true;
+}
+
+
+double DiscreteWrenchSpace::computeDistToHull(SharedDoublePtr wrenches)const{
+
+    //compute signed distance to every facet! - for now only for a single wrench
+
+    //std::vector<double> dists;
+    facetT* curr_f=conv_hull_.beginFacet().getFacetT();
+
+    double minDist(100);
+
+    for(uint i=0;i< conv_hull_.facetCount();i++)
+    {
+
+        //fprintf(hp, "% f % f % f % f  \n",-(curr_f->vertices)[0],-(curr_f->normal)[1],-(curr_f->normal)[2],-(curr_f->offset));
+        double sumPx(0),sqSum(0);
+        for(uint j=0; j < dimension_; j++){
+            sumPx += wrenches.get()[j] * (curr_f->normal)[j];
+            sqSum += (curr_f->normal)[j] * (curr_f->normal)[j];
+        }
+
+        double dist = -(sumPx + curr_f->offset)/pow(sqSum,0.5);
+        //std::cout << "minDist" << dist << std::endl;
+
+        if(dist<minDist) minDist=dist;
+
+        curr_f=curr_f->next;
+    }
+
+    return minDist;
+
+
+
 }

@@ -59,7 +59,7 @@ int main(int argc, char** argv)
 
     WrenchConesAll wrenchCones(grasp);
 
-    wrenchCones.computeAllWrenchCones(8);
+    wrenchCones.computeAllWrenchCones(4);
     vector<double> allWrenches=wrenchCones.getAllWrenches();
 
     cout << "Nr wrenches " << wrenchCones.getNrWrenches() << endl;
@@ -70,13 +70,59 @@ int main(int argc, char** argv)
 
     }
 
-    DiscreteWrenchSpace discreteWrenchspace(3);
+
+
+    double *wrenchArray = allWrenches.data();
+    SharedDoublePtr wrenchPtr(wrenchArray);
+
+    DiscreteWrenchSpace discreteWrenchspace(6,wrenchPtr,wrenchCones.getNrWrenches());
+
+    discreteWrenchspace.computeConvexHull();
+
+    //compute second convex hull from 3d points of forces:
+     vector<double> allForces=wrenchCones.getAllForces();
+
+     cout << "Nr forces " << allForces.size()/3 << endl;
+
+     for (int i=0; i < allForces.size(); i++){
+
+         cout << allForces[i] <<  " " << endl;
+
+     }
+
+
+     double *forceArray = allForces.data();
+     SharedDoublePtr forcePtr(forceArray);
+
+     DiscreteWrenchSpace forceWrenchspace(3,forcePtr,wrenchCones.getNrWrenches());
+
+     forceWrenchspace.computeConvexHull();
+
 
     cout << discreteWrenchspace << endl;
 
+    cout << forceWrenchspace << endl;
+    vector<double> taskForce;
 
+    taskForce.push_back(0);
+    taskForce.push_back(0);
+    taskForce.push_back(0);
+    SharedDoublePtr taskF(taskForce.data());
+    cout << "minDist: = " << forceWrenchspace.computeDistToHull(taskF) << std::endl;
 
+    forceWrenchspace.writeToOffFile("/home/alexander/tmp/offtest/forcespace.off");
 
+    ///visualizing pure torquespace:
+
+    vector<double> allTorques=wrenchCones.getAllTorques();
+
+    SharedDoublePtr torquePtr(allTorques.data());
+
+    DiscreteWrenchSpace torqueWrenchspace(3,torquePtr,wrenchCones.getNrWrenches());
+
+    torqueWrenchspace.computeConvexHull();
+    cout << torqueWrenchspace << endl;
+    torqueWrenchspace.writeToOffFile("/home/alexander/tmp/offtest/torquespace.off");
 
 
     return 0;

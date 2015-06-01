@@ -86,6 +86,8 @@ public:
     uint getNumFacets()const;
     SharedDoublePtr getWrenches()const;
     bool writeToFile(const std::string& path)const;
+    bool writeToOffFile(const std::string& path)const;
+    double computeDistToHull(SharedDoublePtr wrenches)const;
     void setWrenches(SharedDoublePtr wrenches,uint num_wrenches);
 };
 
