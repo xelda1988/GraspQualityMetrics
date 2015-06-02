@@ -9,6 +9,16 @@ Dependencies:
 
     ROS
     qhull
+    
+Installation of qhull:
+
+    wget http://www.qhull.org/download/qhull-2012.1-src.tgz
+* Untar 
+* In libqhull/user.h set qh_QHpointer 1
+* Install with Cmake installation script
+
+Installation of Project Grasp-Simulation-Vrep:
+* In CMakeLists modify Line 14: SET(qhullDir "yourQhullBaseDirectory") 
 
 Needs:
 
