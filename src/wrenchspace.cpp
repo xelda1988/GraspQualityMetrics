@@ -189,37 +189,39 @@ bool DiscreteWrenchSpace::writeToOffFile(const std::string& path)const
 
   fprintf(hp, "OFF \n%i %i 0\n", conv_hull_.vertexCount(), conv_hull_.facetCount());
 
-  for(uint i=0; i<conv_hull_.vertexCount(); i++){
-      std::cout << "Id: " <<  i << " - " << qh_pointid(curr_v->point) <<  std::endl;
-      curr_v=curr_v->next;
-  }
+//  for(uint i=0; i<conv_hull_.vertexCount(); i++){
+//      std::cout << "Id: " <<  i << " - " << qh_pointid(curr_v->point) <<  std::endl;
+//      curr_v=curr_v->next;
+//  }
   curr_v=conv_hull_.beginVertex().getVertexT();
 
   for(uint i=0; i < conv_hull_.vertexCount(); i++){
 
       //if (dimension_==3)
-//order the vertices by id! bug in qhull???
-            //if(i==4)  fprintf(hp, "0 0 0\n");
-          for(uint j=0; j< conv_hull_.vertexCount(); j++){
-            //std::cout << i << std::endl;
+      //order the vertices by id! bug in qhull???
+      //if(i==4)  fprintf(hp, "0 0 0\n");
+      //for(uint j=0; j< conv_hull_.vertexCount(); j++){
+      //std::cout << i << std::endl;
+      //Rather set id
+      //if(i==qh_pointid(curr_v->point)){
+      //writing dummy index at place nr 4, no idea check if it changes for other hulls
+      //fprintf(hp, "%f %f %f %i\n",(curr_v->point)[0],(curr_v->point)[1],(curr_v->point)[2],curr_v->id);
+      //std::cout << "POINTID " << qh_pointid(curr_v->point) << std::endl;
+      //setting point id
+      curr_v->id=i;
+      fprintf(hp, "%f %f %f \n",(curr_v->point)[0],(curr_v->point)[1],(curr_v->point)[2]);
 
-              if(i==qh_pointid(curr_v->point)){
-                  //writing dummy index at place nr 4, no idea check if it changes for other hulls
-                  //fprintf(hp, "%f %f %f %i\n",(curr_v->point)[0],(curr_v->point)[1],(curr_v->point)[2],curr_v->id);
-//std::cout << "POINTID " << qh_pointid(curr_v->point) << std::endl;
-                  fprintf(hp, "%f %f %f \n",(curr_v->point)[0],(curr_v->point)[1],(curr_v->point)[2]);
-
-                  break;
-              }
-              curr_v=curr_v->next;
-          }
-          curr_v=conv_hull_.beginVertex().getVertexT();
+      //break;
+      //}
+      curr_v=curr_v->next;
   }
+      //curr_v=conv_hull_.beginVertex().getVertexT();
+  //}
 
   facetT* curr_f=conv_hull_.beginFacet().getFacetT();
 
   for(uint i=0;i< conv_hull_.facetCount();i++)
-    {
+  {
       if (dimension_==3){
 
           setT* vertSet=curr_f->vertices;
@@ -229,20 +231,20 @@ bool DiscreteWrenchSpace::writeToOffFile(const std::string& path)const
               //writing fck vertexptr
               //setelemT* currV = ;
               vertexT* currVert = (vertexT*) vertSet->e[j].p;
-              fprintf(hp, "%i ",qh_pointid(currVert->point));
+              fprintf(hp, "%i ",currVert->id);
 
           }
           fprintf(hp, "\n");
       }
 
-    //fprintf(hp, "% f % f % f % f  \n",-(curr_f->vertices)[0],-(curr_f->normal)[1],-(curr_f->normal)[2],-(curr_f->offset));
-  else
-    {
-      std::cout<<"Warning in DiscreteWrenchSpace::writeToFile(const std::string& path)const - cann only write 3-D facets to off sfile!"<<std::endl;
-      return false;
-    }
-  curr_f=curr_f->next;
-    }
+      //fprintf(hp, "% f % f % f % f  \n",-(curr_f->vertices)[0],-(curr_f->normal)[1],-(curr_f->normal)[2],-(curr_f->offset));
+      else
+      {
+          std::cout<<"Warning in DiscreteWrenchSpace::writeToFile(const std::string& path)const - cann only write 3-D facets to off sfile!"<<std::endl;
+          return false;
+      }
+      curr_f=curr_f->next;
+  }
   fclose (hp);
 
   return true;

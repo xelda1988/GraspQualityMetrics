@@ -38,7 +38,7 @@ int main(int argc, char** argv)
     WrenchCone wrenchcone1;
 
     wrenchcone1.setFriction(0.5);
-    wrenchcone1.setNrFactes(8);
+    wrenchcone1.setNrFactes(16);
     wrenchcone1.setContact(contact1);
     wrenchcone1.setTorqueArm(torqueArm);
 
@@ -59,7 +59,7 @@ int main(int argc, char** argv)
 
     WrenchConesAll wrenchCones(grasp);
 
-    wrenchCones.computeAllWrenchCones(4);
+    wrenchCones.computeAllWrenchCones(16);
     vector<double> allWrenches=wrenchCones.getAllWrenches();
 
     cout << "Nr wrenches " << wrenchCones.getNrWrenches() << endl;
