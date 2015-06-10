@@ -260,7 +260,7 @@ double DiscreteWrenchSpace::computeDistToHull(SharedDoublePtr wrenches)const{
 
     double minDist(100);
 
-    for(uint i=0;i< conv_hull_.facetCount();i++)
+    for(uint i=0;i < conv_hull_.facetCount();i++)
     {
 
         //fprintf(hp, "% f % f % f % f  \n",-(curr_f->vertices)[0],-(curr_f->normal)[1],-(curr_f->normal)[2],-(curr_f->offset));

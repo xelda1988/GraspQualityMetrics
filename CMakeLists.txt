@@ -31,7 +31,16 @@ TARGET_LINK_LIBRARIES(libExample ${qhullLibs})
 set_target_properties(libExample PROPERTIES
     COMPILE_DEFINITIONS "qh_QHpointer")
 
-ADD_EXECUTABLE(testWS example/testWrenchSpaceComp.cpp src/grasp.cpp src/wrench_cone.cpp src/wrenchspace.cpp)
+SET(cppsources
+src/grasp.cpp
+src/wrench_cone.cpp
+src/wrenchspace.cpp
+src/taskwrenchellipsoid.cpp
+src/twsgraspquality.cpp
+)
+
+ADD_EXECUTABLE(testWS example/testWrenchSpaceComp.cpp ${cppsources})
+
 TARGET_LINK_LIBRARIES(testWS ${qhullLibs})
 set_target_properties(testWS PROPERTIES
     COMPILE_DEFINITIONS "qh_QHpointer")
