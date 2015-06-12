@@ -14,6 +14,8 @@ void taskwrenchEllipsoid::sampleComEllipsoid()
     int lMax=4;
     int k=0;
 
+
+
     for(int i=0; i < iMax; i++){
         for(int j=0; j < jMax; j++){
             for(int l=0; l<lMax;l++){
@@ -26,7 +28,7 @@ void taskwrenchEllipsoid::sampleComEllipsoid()
                 double v=-M_PI + ((double) j / (double) jMax)*2*M_PI;
                 double w=mass_ - sigmaMass_ + ((double) l / (double) lMax)*2*sigmaMass_;
 
-                Eigen::Vector3d currentCom; //parametrized in PCA frame;
+                Eigen::Vector3d currentCom; //parametrized in PCA frame
                 Eigen::Vector3d force;
                 Eigen::Vector3d torque;
                 Eigen::Vector3d comInRotFrame;
@@ -36,11 +38,15 @@ void taskwrenchEllipsoid::sampleComEllipsoid()
                 currentCom(2)=sigmaCom_(2)*sin(u);
 
                 //std::cout << currentCom << std::endl;
-                std::cout << u << std::endl;
-                std::cout << v << std::endl;
+                //std::cout << u << std::endl;
+                //std::cout << v << std::endl;
 
-                force=9.81*w*gripperRot_*gravityNormal_;//use SI Units for now, transform into hand frame, not sure about pose!
+                force=-9.81*w*gripperRot_*gravityNormal_;//use SI Units for now, transform into hand frame, not sure about pose!
                //comInRotFrame=comRotFrame_*currentCom; // sampling done in the pca frame!
+
+                if(l==0){force_min=force;}
+                if(l==lMax-1){force_max=force;}
+
 
                 torque=currentCom.cross(force);
                 comEllipse_.col(k)=comInRotFrame;
@@ -77,12 +83,16 @@ void taskwrenchEllipsoid::computeTorqueEllipsoid()
     //Transform Pointset to EigenFrame
     //getting the max in the eigenvectorFrame
 
-    MatSampledPts transf=pcaMat_*aligned;
+    //check if right handed rotation matrix!
+    std::cout << "Determinant" << std::endl;
+    std::cout << pcaMat_.determinant() << std::endl;
+
+    MatSampledPts transf=pcaMat_.inverse()*aligned; //why inverse seems to work?? debug that more!!
     Eigen::Vector3d max3D=transf.rowwise().maxCoeff();
     //get Enclosed Ellipse by scaling Eigenvectors with maxCoeff
-    double delta=0.0000001;
+    double delta=0.00001;
     Eigen::Matrix3d scalMat=Eigen::Vector3d(pow(max3D(0)+delta,-2),pow(max3D(1)+delta,-2),pow(max3D(2)+delta,-2)).asDiagonal();
-    Eigen::Vector3d maxScale=scalMat*eigenValues;
+    Eigen::Vector3d maxScale=scalMat*eigenValues;//eigenvalues in new frame, why does the ordering change?!
     double scale=maxScale.maxCoeff();
 
     std::cout << "max3D" << max3D << std::endl;
@@ -90,21 +100,52 @@ void taskwrenchEllipsoid::computeTorqueEllipsoid()
     std::cout << "scale" << scale<<std::endl;
     pcaEv_ << pow((eigenValues(0)+0)/scale,0.5), pow(eigenValues(1)/scale,0.5),pow(eigenValues(2)/scale,0.5); //Now scaled to halfaxes!
 
+    pca_to_ellipse_.rotation=pcaMat_;
+    pca_to_ellipse_.translation<<0,0,0;
+
+
 }
 
 void taskwrenchEllipsoid::getLinearTransform(Transform & hand_to_ellipse,
                                              Eigen::Vector3d & semiAxesTorque,
-                                             Eigen::Vector3d & semiAxesForces){
+                                             Eigen::Vector3d & semiAxesForces,
+                                             Eigen::Vector3d & forceOffset){
 
     //get transformation hand to ellipse:
 
-    hand_to_ellipse.hom = ((pca_to_ellipse_.hom).inverse()*(camera_to_pca_.hom.inverse())*(camera_to_world_.hom)*(world_to_hand_.hom)).inverse();
+    pca_to_ellipse_.setHomFromRotTrans();
+    camera_to_pca_.setHomFromRotTrans();
+    camera_to_world_.setHomFromRotTrans();
+    world_to_hand_.setHomFromRotTrans();
+
+    std::cout << "pca_to_ellipse_" << std::endl;
+    std::cout << pca_to_ellipse_.hom << std::endl;
+    std::cout << "camera_to_pca_:" << std::endl;
+    std::cout << camera_to_pca_.hom << std::endl;
+    std::cout << "camera_to_world:" << std::endl;
+    std::cout << camera_to_world_.hom << std::endl;
+    std::cout << "world_to_hand_:" << std::endl;
+    std::cout << world_to_hand_.hom << std::endl;
+
+    //test
+    hand_to_ellipse.hom = ((pca_to_ellipse_.hom)*(camera_to_pca_.hom.inverse())*(camera_to_world_.hom)*(world_to_hand_.hom)).inverse();
     hand_to_ellipse.setFromHomog();
 
     semiAxesTorque = pcaEv_ + noiseTorque_;
-    semiAxesForces = noiseForce_;
+    semiAxesForces = pca_to_ellipse_.rotation.inverse()*(force_max-force_min)/2 + noiseForce_; //create a translation offset
+
+    //bind the tws first by a cone, then by its steiner ellipse - which accounts both for scaling in magnitude and noise
+
+    forceOffset=(force_max+force_min)*0.5; // translate force ellipse such that non-force closure grasp is possible!
 
 
+    std::cout << "Debug, force vector in pca frame" << std::endl;
+    std::cout << pca_to_ellipse_.rotation.inverse()*force_max << std::endl;
+
+    hand_to_ellipse_=hand_to_ellipse;
+    semiAxesTorque_=semiAxesTorque;
+    semiAxesForces_=semiAxesForces;
+    forceOffset_=forceOffset;
     ///go on from here!!!!!
 
 }
@@ -132,6 +173,43 @@ void taskwrenchEllipsoid::writeTaskEllipse(const std::string & filename){
         of << pcaEv_.transpose() << std::endl;
     }
     of.close();
+}
+
+void taskwrenchEllipsoid::writeForceTorqueEllipse(const std::string & filename){
+
+    std::ofstream of(filename.c_str());
+    if(of.is_open()){
+
+        of << hand_to_ellipse_.hom << std::endl;
+        of << semiAxesForces_.transpose() << " 0" << std::endl;
+        of << semiAxesTorque_.transpose() <<  " 0" << std::endl;
+        of << (pca_to_ellipse_.rotation.inverse()*forceOffset_).transpose() <<  " 0" << std::endl; //to translate to the ellipse frame!
+    }
+    of.close();
+}
+
+void taskwrenchEllipsoid::writeTransformedPts(const std::string & filename)
+{
+    std::ofstream of(filename.c_str());
+    if(of.is_open()){
+
+        //torquesamples - offset ? points are in pca frame, not ellipse frame!
+
+        //first transform these guys into the ellipse frame!!
+
+        MatSampledPts translated=sampledPointsEllipse_.colwise() - hand_to_ellipse_.rotation.inverse()*hand_to_ellipse_.translation;
+        std::cout << hand_to_ellipse_.translation.transpose() << std::endl;
+        std::cout << hand_to_ellipse_.rotation.inverse() << std::endl;
+        std::cout << hand_to_ellipse_.hom << std::endl;
+
+        std::cout << translated.transpose() << std::endl;
+        of << (hand_to_ellipse_.rotation.inverse()*pca_to_ellipse_.rotation.inverse()*(translated)).transpose();
+        //of << comEllipse_.transpose();
+
+    }
+    of.close();
+
+
 }
 
 

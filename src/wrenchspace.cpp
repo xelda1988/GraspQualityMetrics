@@ -271,7 +271,7 @@ double DiscreteWrenchSpace::computeDistToHull(SharedDoublePtr wrenches)const{
         }
 
         double dist = -(sumPx + curr_f->offset)/pow(sqSum,0.5);
-        //std::cout << "minDist" << dist << std::endl;
+        std::cout << "minDist" << dist << std::endl;
 
         if(dist<minDist) minDist=dist;
 

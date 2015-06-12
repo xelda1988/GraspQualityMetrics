@@ -49,6 +49,9 @@ class taskwrenchEllipsoid{
 
 private:
 
+    Eigen::Vector3d force_min;
+    Eigen::Vector3d force_max;
+
     MatSampledPts sampledPointsEllipse_;
     MatSampledPts comEllipse_;
     double mass_;
@@ -73,6 +76,13 @@ private:
     //output:
     Eigen::Matrix3d pcaMat_;
     Eigen::Vector3d pcaEv_;
+
+    Transform hand_to_ellipse_;
+    Eigen::Vector3d semiAxesTorque_;
+    Eigen::Vector3d semiAxesForces_;
+    Eigen::Vector3d forceOffset_;
+
+
 
 
 
@@ -108,16 +118,24 @@ public:
         noiseTorque_=Eigen::Vector3d(nt,nt,nt);
     }
 
+    void setGravityNormal(const Eigen::Vector3d & gravNorm){
+
+        gravityNormal_=gravNorm;
+    }
+
 
     void sampleComEllipsoid(); //Sampling from Parametric form of Ellipsoid
     void computeTorqueEllipsoid();
 
     void getLinearTransform(Transform & hand_to_ellipse,
                             Eigen::Vector3d & semiAxesTorque,
-                            Eigen::Vector3d & semiAxesForces);
+                            Eigen::Vector3d & semiAxesForces,
+                            Eigen::Vector3d & forceOffset );
 
     void writeSampledPts(const std::string & filename);
     void writeTaskEllipse(const std::string & filename);
+    void writeForceTorqueEllipse(const std::string & filename);
+    void writeTransformedPts(const std::string & filename);
 
     taskwrenchEllipsoid(){
         gravityNormal_<<0,0,1;

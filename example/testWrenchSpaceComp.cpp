@@ -8,8 +8,24 @@
 
 #include <chrono>
 #include <time.h>
+#include <fstream>
 
 using namespace std;
+
+void writeWrenchesToFile(const SharedDoublePtr & data, uint nrWrenches, const string & file){
+
+    uint dim=6;
+    std::ofstream of(file);
+    for(int i=0; i < nrWrenches*dim; i++)
+    {
+        //cout << data.get()[i] << " ";
+        //if((i+1)%6==0){cout << endl;}
+        if(of.is_open()){
+            of << data.get()[i] << " ";
+            if((i+1)%6==0){of << endl;}
+        }
+    }
+}
 
 int main(int argc, char** argv)
 {
@@ -19,7 +35,7 @@ int main(int argc, char** argv)
     //From regression algorithm
     double mass(1); //1kg
     double sigmaMass(0.2); //uncertainty: 0.2kg
-    Eigen::Vector3d com(0,0,0); //center of mass
+    Eigen::Vector3d com(0.5,0,0); //center of mass in which frame??
     Eigen::Vector3d sigmaCom(0.05,0.05,0.05); //uncertainty center of mass in meters
     Eigen::Matrix3d camera_to_pca_rot=Eigen::Matrix3d::Identity();
 
@@ -56,7 +72,7 @@ int main(int argc, char** argv)
     contact2 << -0.03*0.5,-0.03*0.87   ,0.01,   0,0,1;
     contact3 <<  0.03*0.5,-0.03*0.87   ,0.01,   0,0,1;
 
-    contact4 << -1,0 ,0.01,  1,0,0;
+    //contact4 << 0,0,0.03,  0,0,-1; //add grasp from above!
 
     grasp.addContact(contact1);
     grasp.addContact(contact2);
@@ -77,6 +93,10 @@ int main(int argc, char** argv)
 
     tws_ell.setInput(mass,sigmaMass, com, sigmaCom, camera_to_pca_rot);
     tws_ell.setNoise(noiseForce,noiseTorque);
+    tws_ell.setCameraCalib(camera_to_world);
+    tws_ell.setGripperPose(world_to_hand);
+    tws_ell.setGravityNormal(gravity_normal);
+
     tws_ell.sampleComEllipsoid();
     tws_ell.computeTorqueEllipsoid();
 
@@ -86,7 +106,103 @@ int main(int argc, char** argv)
     cout<<"Computation Time for Ellipsoid: "<< time_spent << endl;
 
     tws_ell.writeSampledPts("/home/alexander/tmp/2dGraspWrenchSpace/sampledPts.txt");
-    tws_ell.writeTaskEllipse("/home/alexander/tmp/2dGraspWrenchSpace/taskEll.txt");
+     tws_ell.writeTaskEllipse("/home/alexander/tmp/2dGraspWrenchSpace/taskEll.txt");
+
+
+
+    Transform hand_to_ellipse;
+    Eigen::Vector3d semiAxesTorque;
+    Eigen::Vector3d semiAxesForces;
+    Eigen::Vector3d forceOffset; //in pca frame!
+    tws_ell.getLinearTransform(hand_to_ellipse, semiAxesTorque, semiAxesForces,forceOffset);
+
+    //writing the semiaxes + rotation  also to a file!
+
+
+
+    //After get Linear Transform!!!!!!!!
+    tws_ell.writeTransformedPts("/home/alexander/tmp/2dGraspWrenchSpace/sampledPtsTrans.txt");//torque points transformed to gripper frame
+    tws_ell.writeForceTorqueEllipse("/home/alexander/tmp/2dGraspWrenchSpace/ellpsoidTrans.txt");
+
+
+    cout << "Transformation for the wrenches:" << endl;
+    cout << "Hand to Ellipse:" << endl;
+    cout << hand_to_ellipse.hom << endl;
+    cout << "SemiAxis Torque:" << endl;
+    cout << semiAxesTorque.transpose() << endl;
+    cout << "SemiAxis Force:" << endl;
+    cout << semiAxesForces.transpose() << endl;
+
+    cout << "Computing primitive wrenches from cones contacts " << endl;
+
+    WrenchConesAll wrenchCones(grasp);
+    wrenchCones.setMaxForce(maxForceHand);
+    wrenchCones.computeAllWrenchCones(8);
+    wrenchCones.addZeroToWrenches(); //adding zero force grasp
+
+    vector<double> allWrenches=wrenchCones.getAllWrenches();
+    cout << "Nr wrenches " << wrenchCones.getNrWrenches() << endl;
+    //for (int i=0; i < allWrenches.size(); i++){
+    //    cout << allWrenches[i] <<  " " << endl;
+    //}
+    double *wrenchArray = allWrenches.data();
+    SharedDoublePtr wrenchPtr(wrenchArray);
+
+    cout << "Transforming wrenches with transformations!" << endl;
+
+    std::vector<Vector6d> wrenchVec=wrenchCones.get6dEigen();
+
+    twsGraspQuality gwsTransform;
+    gwsTransform.setParams(wrenchVec,
+                           hand_to_ellipse,
+                           semiAxesTorque,
+                           semiAxesForces,
+                           forceOffset);
+
+    gwsTransform.computeTransform();
+
+    SharedDoublePtr wrenchPtrTrans;
+    uint nrWrenches;
+    gwsTransform.getOutput(wrenchPtrTrans,nrWrenches);
+
+    vector<double> taskWrench;
+
+    taskWrench.push_back(0);
+    taskWrench.push_back(0);
+    taskWrench.push_back(0);
+    taskWrench.push_back(0);
+    taskWrench.push_back(0);
+    taskWrench.push_back(0);
+
+    cout << "Computing convex Hull on original wrenches:" << endl;
+    DiscreteWrenchSpace discreteWrenchspace(6,wrenchPtr,wrenchCones.getNrWrenches());
+    discreteWrenchspace.computeConvexHull();
+    cout << discreteWrenchspace << endl;
+
+    SharedDoublePtr taskW(taskWrench.data());
+    //cout << "minDist: = " << discreteWrenchspace.computeDistToHull(taskW) << std::endl;
+
+    cout << "Computing convex Hull on transformed wrenches:" << endl;
+    DiscreteWrenchSpace discreteWrenchspaceTrans(6,wrenchPtrTrans,nrWrenches);
+    discreteWrenchspaceTrans.computeConvexHull();
+    cout << discreteWrenchspaceTrans << endl;
+
+
+    // cout << "minDist: = " << discreteWrenchspaceTrans.computeDistToHull(taskW) << std::endl;
+
+    cout << "Writing wrenches to file for visualization!" << endl;
+
+    writeWrenchesToFile(wrenchPtr,wrenchCones.getNrWrenches(),"/home/alexander/tmp/2dGraspWrenchSpace/wrenches_orig.txt");
+    writeWrenchesToFile(wrenchPtrTrans,nrWrenches,"/home/alexander/tmp/2dGraspWrenchSpace/wrenches_trans.txt");
+
+    //compute second convex hull from 3d points of forces:
+    vector<double> allForces=wrenchCones.getAllForces();
+    double *forceArray = allForces.data();
+    SharedDoublePtr forcePtr(forceArray);
+    DiscreteWrenchSpace forceWrenchspace(3,forcePtr,wrenchCones.getNrWrenches());
+    forceWrenchspace.computeConvexHull();
+    cout << forceWrenchspace << endl;
+    forceWrenchspace.writeToOffFile("/home/alexander/tmp/offtest/forcespace.off"); //To compare to the Mathematica visualization!
 
 
 

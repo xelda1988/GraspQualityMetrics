@@ -19,7 +19,7 @@ void twsGraspQuality::computeTransform(){
         torque_in_ellipse=hand_to_ellipse_.translation;
 
         force_t = fScale*hand_to_ellipse_.rotation*force;
-        torque_t = tScale*hand_to_ellipse_.rotation*torque;
+        torque_t = tScale*hand_to_ellipse_.rotation*(torque-torque_in_ellipse);
 
         wrench_out << force_t,torque_t;
         wrenches_out_.push_back(wrench_out);

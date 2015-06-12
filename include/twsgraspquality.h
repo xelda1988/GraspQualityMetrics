@@ -18,6 +18,7 @@ class twsGraspQuality
     Transform hand_to_ellipse_;
     Eigen::Vector3d semiAxesTorque_;
     Eigen::Vector3d semiAxesForces_;
+    Eigen::Vector3d forceOffset_;
 
     std::vector<Vector6d> wrenches_out_;
     SharedDoublePtr transformedWrenches;
@@ -27,16 +28,24 @@ public:
     twsGraspQuality();
     void setParams(const std::vector<Vector6d> & wrenches_in,
                    const Transform & hand_to_ellipse,
-                   const Eigen::Vector3d semiAxesTorque,
-                   const Eigen::Vector3d semiAxesForces){
+                   const Eigen::Vector3d  & semiAxesTorque,
+                   const Eigen::Vector3d & semiAxesForces,
+                   const Eigen::Vector3d & forceOffset){
         wrenches_in_=wrenches_in;
         hand_to_ellipse_=hand_to_ellipse; //the translation is not metric but a torque measure
         semiAxesTorque_=semiAxesTorque;
         semiAxesForces_=semiAxesForces;
         nrWrenches_=wrenches_in.size();
+        forceOffset_=forceOffset;
         dim_=6;
     }
     void computeTransform();
+    void getOutput(SharedDoublePtr & transformedWrenchs, uint & nrWrenches){
+
+        transformedWrenchs=transformedWrenches;
+        nrWrenches=nrWrenches_;
+
+    }
 
 };
 

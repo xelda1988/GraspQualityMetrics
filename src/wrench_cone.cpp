@@ -55,8 +55,8 @@ void WrenchCone::computePrimitiveWrenches(){
     for(int i =0; i < nrFacets_; i++){
 
         //current force for ith facet
-
-        force = fn + fx*friction_*cos(2*M_PI*i/nrFacets_) + fy*friction_*sin(2*M_PI*i/nrFacets_);
+        //std::cout << "[DEBUG:] maxForce!" << maxForce_ << std::endl;
+        force = maxForce_*(fn + fx*friction_*cos(2*M_PI*i/nrFacets_) + fy*friction_*sin(2*M_PI*i/nrFacets_));//scale them with max force!
         torque = ps.cross(force);
 
         currWrench << force,torque;
@@ -70,6 +70,7 @@ void WrenchCone::computePrimitiveWrenches(){
 
 void WrenchConesAll::computeAllWrenchCones(uint nrFacets){
 
+
     double friction=grasp_.getFriction();
     double maxTorqueArm=grasp_.getMaxTorqueArm();
 
@@ -79,6 +80,7 @@ void WrenchConesAll::computeAllWrenchCones(uint nrFacets){
         allCones_.clear();
         allForces_.clear();
         allTorques_.clear();
+        vec6d_.clear();
     }
 
     nrWrenches_=0;
@@ -92,6 +94,9 @@ void WrenchConesAll::computeAllWrenchCones(uint nrFacets){
         wrenchCone.setNrFactes(nrFacets);
         wrenchCone.setContact(contact);
         wrenchCone.setTorqueArm(maxTorqueArm);
+        //std::cout << "[DEBUG:] maxForce before!" << maxForce_ << std::endl;
+        wrenchCone.setMaxForce(maxForce_);
+
 
         wrenchCone.computePrimitiveWrenches();
         allCones_.push_back(wrenchCone);
@@ -105,6 +110,7 @@ void WrenchConesAll::computeAllWrenchCones(uint nrFacets){
             for(int k=0; k < 6; k++){
                 allWrenches_.push_back(currWrench(k));
             }
+            vec6d_.push_back(currWrench);
 
             for(int k=0; k < 3; k++){
                 allForces_.push_back(currWrench(k));
