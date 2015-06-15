@@ -21,6 +21,7 @@ class twsGraspQuality
     Eigen::Vector3d forceOffset_;
 
     std::vector<Vector6d> wrenches_out_;
+    std::vector<double> wrenches_vector_out_;
     SharedDoublePtr transformedWrenches;
     uint nrWrenches_;
     uint dim_;
@@ -44,6 +45,11 @@ public:
 
         transformedWrenchs=transformedWrenches;
         nrWrenches=nrWrenches_;
+
+    }
+    std::vector<double> getVector(){
+
+        return wrenches_vector_out_;
 
     }
 

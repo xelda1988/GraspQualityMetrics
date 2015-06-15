@@ -27,15 +27,43 @@ void writeWrenchesToFile(const SharedDoublePtr & data, uint nrWrenches, const st
     }
 }
 
+//For debugging building projection to 3d Spaces and computing in sphere radius
+
+vector<double> getForce(const vector<double> & wrenches){
+    vector<double> forces;
+    for(int i=0; i < wrenches.size(); i++){
+        //if i is multiple of 3, then increment i by three
+        if((i+1)%6==0){
+            forces.push_back(wrenches.at(i-5));
+            forces.push_back(wrenches.at(i-4));
+            forces.push_back(wrenches.at(i-3));
+        }
+    }
+    return forces;
+}
+
+vector<double> getTorque(const vector<double> & wrenches){
+    vector<double> torques;
+    for(int i=0; i < wrenches.size(); i++){
+        //if i is multiple of 3, then increment i by three
+        if((i+1)%6==0){
+            torques.push_back(wrenches.at(i-2));
+            torques.push_back(wrenches.at(i-1));
+            torques.push_back(wrenches.at(i-0));
+          }
+    }
+    return torques;
+}
+
 int main(int argc, char** argv)
 {
 
     //Settings:
 
     //From regression algorithm
-    double mass(1); //1kg
+    double mass(3); //1kg
     double sigmaMass(0.2); //uncertainty: 0.2kg
-    Eigen::Vector3d com(0.5,0,0); //center of mass in which frame??
+    Eigen::Vector3d com(0.0,0,0); //center of mass in which frame??
     Eigen::Vector3d sigmaCom(0.05,0.05,0.05); //uncertainty center of mass in meters
     Eigen::Matrix3d camera_to_pca_rot=Eigen::Matrix3d::Identity();
 
@@ -152,6 +180,12 @@ int main(int argc, char** argv)
 
     std::vector<Vector6d> wrenchVec=wrenchCones.get6dEigen();
 
+    cout << "Wrenched Eigen 6D:" << endl;
+
+    //for(int i=0; i < wrenchVec.size(); i++){
+    //    cout << wrenchVec.at(i).transpose() << endl;
+    //}
+
     twsGraspQuality gwsTransform;
     gwsTransform.setParams(wrenchVec,
                            hand_to_ellipse,
@@ -163,8 +197,11 @@ int main(int argc, char** argv)
 
     SharedDoublePtr wrenchPtrTrans;
     uint nrWrenches;
-    gwsTransform.getOutput(wrenchPtrTrans,nrWrenches);
 
+    gwsTransform.getOutput(wrenchPtrTrans,nrWrenches);
+    vector<double> wrenchTransformed=gwsTransform.getVector();
+    SharedDoublePtr transfWrench(wrenchTransformed.data());
+    nrWrenches=wrenchTransformed.size()/6;
     vector<double> taskWrench;
 
     taskWrench.push_back(0);
@@ -173,6 +210,12 @@ int main(int argc, char** argv)
     taskWrench.push_back(0);
     taskWrench.push_back(0);
     taskWrench.push_back(0);
+
+    cout << "Writing wrenches to file for visualization!" << endl;
+
+    writeWrenchesToFile(wrenchPtr,wrenchCones.getNrWrenches(),"/home/alexander/tmp/2dGraspWrenchSpace/wrenches_orig.txt");
+    writeWrenchesToFile(transfWrench,nrWrenches,"/home/alexander/tmp/2dGraspWrenchSpace/wrenches_trans.txt");
+    //cout << "Wrenches Size" <<
 
     cout << "Computing convex Hull on original wrenches:" << endl;
     DiscreteWrenchSpace discreteWrenchspace(6,wrenchPtr,wrenchCones.getNrWrenches());
@@ -183,17 +226,13 @@ int main(int argc, char** argv)
     //cout << "minDist: = " << discreteWrenchspace.computeDistToHull(taskW) << std::endl;
 
     cout << "Computing convex Hull on transformed wrenches:" << endl;
-    DiscreteWrenchSpace discreteWrenchspaceTrans(6,wrenchPtrTrans,nrWrenches);
+    DiscreteWrenchSpace discreteWrenchspaceTrans(6,transfWrench,nrWrenches);
     discreteWrenchspaceTrans.computeConvexHull();
     cout << discreteWrenchspaceTrans << endl;
 
 
     // cout << "minDist: = " << discreteWrenchspaceTrans.computeDistToHull(taskW) << std::endl;
 
-    cout << "Writing wrenches to file for visualization!" << endl;
-
-    writeWrenchesToFile(wrenchPtr,wrenchCones.getNrWrenches(),"/home/alexander/tmp/2dGraspWrenchSpace/wrenches_orig.txt");
-    writeWrenchesToFile(wrenchPtrTrans,nrWrenches,"/home/alexander/tmp/2dGraspWrenchSpace/wrenches_trans.txt");
 
     //compute second convex hull from 3d points of forces:
     vector<double> allForces=wrenchCones.getAllForces();
@@ -204,6 +243,33 @@ int main(int argc, char** argv)
     cout << forceWrenchspace << endl;
     forceWrenchspace.writeToOffFile("/home/alexander/tmp/offtest/forcespace.off"); //To compare to the Mathematica visualization!
 
+    vector<double> forceTrans=getForce(wrenchTransformed);
+    vector<double> torqueTrans=getTorque(wrenchTransformed);
+    SharedDoublePtr forceTransPtr(forceTrans.data());
+    SharedDoublePtr torqueTransPtr(torqueTrans.data());
+    uint forceNr=forceTrans.size()/3;
+    uint torqueNr=torqueTrans.size()/3;
+
+    //cout << "Force and Torque Getter:"<< endl;
+    //for(int i=0; i < forceTrans.size(); i++){
+    //    cout << forceTrans.at(i) << " " << endl;
+    //}
+    //for(int i=0; i < torqueTrans.size(); i++){
+    //    cout << torqueTrans.at(i) << " " << endl;
+    //}
+
+    DiscreteWrenchSpace forceTransWrenchspace(3,forceTransPtr,forceNr);
+    forceTransWrenchspace.computeConvexHull();
+    cout << forceTransWrenchspace << endl;
+    forceTransWrenchspace.writeToOffFile("/home/alexander/tmp/offtest/forcespace_trans.off"); //To compare to the Mathematica visualization!
+
+    DiscreteWrenchSpace torqueTransWrenchspace(3,torqueTransPtr,torqueNr);
+    torqueTransWrenchspace.computeConvexHull();
+    cout << torqueTransWrenchspace << endl;
+    torqueTransWrenchspace.writeToOffFile("/home/alexander/tmp/offtest/torque_trans.off"); //To compare to the Mathematica visualization!
+
+    cout << "Endresult Grasp Quality Measure:" << endl;
+    cout << discreteWrenchspaceTrans.getOcInsphereRadius() << endl;
 
 
     /*

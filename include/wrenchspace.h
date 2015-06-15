@@ -73,7 +73,7 @@ public:
  */
     bool isFullDimension()const;
     bool containsOrigin()const;
-    double getOcInsphereRadius()const;
+    double getOcInsphereRadius()const{return r_oc_insphere_;}
     double getVolume()const;
     double getArea()const;
     uint getDimension()const;
