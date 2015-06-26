@@ -4,16 +4,18 @@ void twsGraspQuality::computeTransform(){
 
     wrenches_out_.clear();
     wrenches_vector_out_.clear();
-    std::vector<double> toPtr;
+
 
     Eigen::Matrix3d fScale = semiAxesForces_.asDiagonal().inverse();
     Eigen::Matrix3d tScale = semiAxesTorque_.asDiagonal().inverse();
 
 
-
+ #if DEBUGQM
     std::cout << "fScale:" << std::endl;
     std::cout << fScale << std::endl;
     std::cout << tScale << std::endl;
+
+#endif
 
     for(int i=0; i < nrWrenches_; i++){
 
@@ -31,11 +33,12 @@ void twsGraspQuality::computeTransform(){
         torque_t = tScale*hand_to_ellipse_.rotation*(torque-torque_in_ellipse);
 
 
-
+ #if DEBUGQM
         std::cout << "TRANSFORMED FORCE AND TORQUE" << std::endl;
         std::cout << force_t << std::endl;
         std::cout << torque_t << std::endl;
 
+#endif
         wrench_out << force_t,torque_t;
         wrenches_out_.push_back(wrench_out);
 
@@ -60,9 +63,11 @@ void twsGraspQuality::computeTransform(){
     //filling ptr
     //double *wrenches_trans=toPtr.data();
 
-    double *wrenchArray =toPtr.data();
-    SharedDoublePtr tmpSharedPtr(wrenchArray); //like allocation?
-    transformedWrenches=tmpSharedPtr;
+    //double *wrenchArray =toPtr.data();
+   // SharedDoublePtr tmpSharedPtr(wrenchArray); //like allocation?
+    //transformedWrenches=tmpSharedPtr;
+   // transformedWrenches = wrenchArray;
+    //std::cout << "[finished comp]" << std::endl;
 
 }
 

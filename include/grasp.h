@@ -16,8 +16,8 @@ class Grasp{
 private:
 
     std::vector<Vector6d> contacts_;
-    uint id_;
     uint nr_contacts_;
+    uint id_;
     double friction_;
 
 public:

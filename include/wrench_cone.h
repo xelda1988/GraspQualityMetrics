@@ -147,12 +147,11 @@ public:
     }
 
 
-
     WrenchConesAll(const Grasp & grasp){
         grasp_=grasp;
         maxForce_=30;
     }
-
+    WrenchConesAll(){}
 
 };
 

@@ -78,10 +78,13 @@ orgQhull::Qhull const* DiscreteWrenchSpace::getConvexHull()const
 //--------------------------------------------------------------------------
 void DiscreteWrenchSpace::computeConvexHull()
 {
+  // #define DEBUG_QHULL
   assert(wrenches_.get() != NULL);
   assert(num_wrenches_ > dimension_);
 
   try{
+
+
     conv_hull_.runQhull("", dimension_,num_wrenches_,wrenches_.get() ,"Q0 Qt"); //Qx doesn't merge coplanar facets, Q0 does, QJ joggles
   }
   catch(std::exception& exc)
@@ -127,12 +130,13 @@ uint DiscreteWrenchSpace::getNumFacets()const{return num_facets_;}
 //--------------------------------------------------------------------------
 SharedDoublePtr DiscreteWrenchSpace::getWrenches()const{return wrenches_;}
 //--------------------------------------------------------------------------
-void DiscreteWrenchSpace::setWrenches(SharedDoublePtr wrenches,uint num_wrenches)
+void DiscreteWrenchSpace::setWrenches(uint dimension, SharedDoublePtr wrenches,uint num_wrenches)
 {
   assert(num_wrenches > 0);
   assert(wrenches.get() != NULL);
   wrenches_=wrenches;
   num_wrenches_=num_wrenches;
+  dimension_=dimension;
 }
 //---------------------------------------------------------------------------------
 bool DiscreteWrenchSpace::writeToFile(const std::string& path)const

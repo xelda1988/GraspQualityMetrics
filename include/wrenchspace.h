@@ -18,6 +18,7 @@
 #define EXPLORED_QUALIFIED   1
 #define EXPLORED_UNQUALIFIED 2
 
+
 typedef unsigned int uint;
 typedef Eigen::Matrix<double,6,Eigen::Dynamic> Matrix6Xd;
 typedef Eigen::Matrix<uint,1, Eigen::Dynamic > RowVectorXui;
@@ -30,7 +31,7 @@ typedef std::list<uint> IndexList;
 typedef std::list<uint>::iterator IndexListIterator;
 typedef std::list<uint>::const_iterator ConstIndexListIterator;
 typedef std::tr1::shared_ptr<double>  SharedDoublePtr;
-//typedef std::tr1::shared_ptr<DiscreteWrenchSpace> DiscreteWrenchSpacePtr;
+
 typedef std::tr1::shared_ptr<Eigen::Vector3d> Vector3dPtr;
 
 /*!
@@ -63,8 +64,8 @@ public:
     DiscreteWrenchSpace();
     DiscreteWrenchSpace(uint dimension);
     DiscreteWrenchSpace(uint dimension,SharedDoublePtr wrenches,uint num_wrenches);
-    DiscreteWrenchSpace(DiscreteWrenchSpace const& src);
-    DiscreteWrenchSpace& operator=(DiscreteWrenchSpace const& src);
+    //DiscreteWrenchSpace(DiscreteWrenchSpace const& src);
+    //DiscreteWrenchSpace& operator=(DiscreteWrenchSpace const& src);
 
     friend std::ostream& operator<<(std::ostream& stream,DiscreteWrenchSpace const& d_wrench_space);
 
@@ -88,9 +89,9 @@ public:
     bool writeToFile(const std::string& path)const;
     bool writeToOffFile(const std::string& path)const;
     double computeDistToHull(SharedDoublePtr wrenches)const;
-    void setWrenches(SharedDoublePtr wrenches,uint num_wrenches);
+    void setWrenches(uint dim, SharedDoublePtr wrenches,uint num_wrenches);
 };
 
-
+typedef std::tr1::shared_ptr<DiscreteWrenchSpace> DiscreteWrenchSpacePtr;
 
 #endif // WRENCHSPACE_H

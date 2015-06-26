@@ -22,11 +22,13 @@ class twsGraspQuality
 
     std::vector<Vector6d> wrenches_out_;
     std::vector<double> wrenches_vector_out_;
-    SharedDoublePtr transformedWrenches;
+    //SharedDoublePtr transformedWrenches;
+    std::vector<double> toPtr;
     uint nrWrenches_;
     uint dim_;
 public:
     twsGraspQuality();
+
     void setParams(const std::vector<Vector6d> & wrenches_in,
                    const Transform & hand_to_ellipse,
                    const Eigen::Vector3d  & semiAxesTorque,
@@ -43,7 +45,7 @@ public:
     void computeTransform();
     void getOutput(SharedDoublePtr & transformedWrenchs, uint & nrWrenches){
 
-        transformedWrenchs=transformedWrenches;
+        //transformedWrenchs=transformedWrenches;
         nrWrenches=nrWrenches_;
 
     }

@@ -136,6 +136,7 @@ public:
     void writeTaskEllipse(const std::string & filename);
     void writeForceTorqueEllipse(const std::string & filename);
     void writeTransformedPts(const std::string & filename);
+    void getHandToEllipse(Transform & hand_to_ellipse);
 
     taskwrenchEllipsoid(){
         gravityNormal_<<0,0,1;
