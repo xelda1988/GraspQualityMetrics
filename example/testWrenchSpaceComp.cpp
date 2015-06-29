@@ -11,6 +11,7 @@
 #include <fstream>
 
 using namespace std;
+using namespace GraspQm;
 
 void writeWrenchesToFile(const SharedDoublePtr & data, uint nrWrenches, const string & file){
 

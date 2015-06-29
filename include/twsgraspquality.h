@@ -12,6 +12,9 @@
 #include "wrenchspace.h"
 #include "taskwrenchellispoid.h"
 
+namespace GraspQm{
+
+
 class twsGraspQuality
 {
     std::vector<Vector6d> wrenches_in_;
@@ -56,5 +59,7 @@ public:
     }
 
 };
+
+}//ns
 
 #endif // TWSGRASPQUALITY_H

@@ -2,6 +2,9 @@
 #include <sstream>
 #include <fstream>
 
+namespace GraspQm{
+
+
 void taskwrenchEllipsoid::sampleComEllipsoid()
 {
 
@@ -42,7 +45,7 @@ void taskwrenchEllipsoid::sampleComEllipsoid()
                 //std::cout << v << std::endl;
 
                 force=-9.81*w*gripperRot_*gravityNormal_;//use SI Units for now, transform into hand frame, not sure about pose!
-               //comInRotFrame=comRotFrame_*currentCom; // sampling done in the pca frame!
+                //comInRotFrame=comRotFrame_*currentCom; // sampling done in the pca frame!
 
                 if(l==0){force_min=force;}
                 if(l==lMax-1){force_max=force;}
@@ -76,7 +79,7 @@ void taskwrenchEllipsoid::computeTorqueEllipsoid()
     pcaMat_=eigenVectors;
     pcaEv_=eigenValues;
 
- #if DEBUGQM
+#if DEBUGQM
     std::cout << "[Debug]:" << std::endl;
     std::cout << "mean: " << mean.transpose() << std::endl;
     std::cout << "eigenVectors: " << eigenVectors << std::endl;
@@ -100,7 +103,7 @@ void taskwrenchEllipsoid::computeTorqueEllipsoid()
     Eigen::Vector3d maxScale=scalMat*eigenValues;//eigenvalues in new frame, why does the ordering change?!
     double scale=maxScale.maxCoeff();
 
- #if DEBUGQM
+#if DEBUGQM
     std::cout << "max3D" << max3D << std::endl;
     std::cout << "maxScale" << maxScale<<std::endl;
     std::cout << "scale" << scale<<std::endl;
@@ -125,7 +128,7 @@ void taskwrenchEllipsoid::getLinearTransform(Transform & hand_to_ellipse,
     camera_to_pca_.setHomFromRotTrans();
     camera_to_world_.setHomFromRotTrans();
     world_to_hand_.setHomFromRotTrans();
- #if DEBUGQM
+#if DEBUGQM
     std::cout << "pca_to_ellipse_" << std::endl;
     std::cout << pca_to_ellipse_.hom << std::endl;
     std::cout << "camera_to_pca_:" << std::endl;
@@ -146,7 +149,7 @@ void taskwrenchEllipsoid::getLinearTransform(Transform & hand_to_ellipse,
 
     forceOffset=(force_max+force_min)*0.5; // translate force ellipse such that non-force closure grasp is possible!
 
- #if DEBUGQM
+#if DEBUGQM
 
     std::cout << "Debug, force vector in pca frame" << std::endl;
     std::cout << pca_to_ellipse_.rotation.inverse()*force_max << std::endl;
@@ -229,8 +232,8 @@ void taskwrenchEllipsoid::writeTransformedPts(const std::string & filename)
 
     }
     of.close();
-
-
 }
+
+}//ns
 
 

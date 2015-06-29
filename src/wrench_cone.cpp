@@ -1,5 +1,7 @@
 #include "wrench_cone.h"
 
+namespace GraspQm{
+
 
 //from torquearm
 
@@ -124,3 +126,5 @@ void WrenchConesAll::computeAllWrenchCones(uint nrFacets){
         }
     }
 }
+
+}//ns

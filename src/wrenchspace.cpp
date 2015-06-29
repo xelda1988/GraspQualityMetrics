@@ -3,6 +3,9 @@
 #include <math.h>
 #include "assert.h"
 
+namespace GraspQm{
+
+
 //---------------------------------------------------------------------------------
 DiscreteWrenchSpace::DiscreteWrenchSpace() : ch_computed_(false),num_wrenches_(0),num_vtx_(0),num_facets_(0)
 {
@@ -283,7 +286,6 @@ double DiscreteWrenchSpace::computeDistToHull(SharedDoublePtr wrenches)const{
     }
 
     return minDist;
-
-
-
 }
+
+}//ns

@@ -14,6 +14,7 @@
 
 //Passed to the algorithm is a Grasp, all the Transforms
 
+namespace GraspQm{
 
 //Functions for recomputing one thing
 //Function for recomputation!: hand_to_ellipse
@@ -142,17 +143,20 @@ private:
 
     void computeGWS(){
 
-        //coutSharedPtr();
+        coutSharedPtr();
 
         //DiscreteWrenchSpace * test = new DiscreteWrenchSpace;
         //discreteWrenchspaceTrans;
         //DiscreteWrenchSpace tmp;
         //discreteWrenchspaceTrans = tmp;
+        std::cout << *discreteWrenchspaceTransPtr <<endl;
         discreteWrenchspaceTransPtr->setWrenches(6,wrenchPtrTrans,nrWrenches);
+
+        std::cout << *discreteWrenchspaceTransPtr <<endl;
         //discreteWrenchspaceTrans.
         discreteWrenchspaceTransPtr->computeConvexHull();
 
-        //std::cout << *discreteWrenchspaceTransPtr <<endl;
+        std::cout << *discreteWrenchspaceTransPtr <<endl;
 
         roc_insphere=discreteWrenchspaceTransPtr->getOcInsphereRadius();
     }
@@ -179,11 +183,14 @@ public:
             const Grasp & grasp,
             const Transform & camera_to_world_in ){
 
-        std::cout << "debugSetInput1" << std::flush;
+        std::cout << "debugSetInput1\n" << std::flush;
 
         mass=mass_in;
+        std::cout << "debugSetInput2\n" << std::flush;
         sigmaMass=sigmaMass_in;
+        std::cout << "debugSetInput3\n" << std::flush;
         com=com_in;
+        std::cout << "debugSetInput4\n" << std::flush;
         sigmaCom=sigmaCom_in;
         camera_to_pca_rot = camera_to_pca_rot_in;
         gravity_normal=gravity_normal_in;
@@ -215,13 +222,13 @@ public:
 
         discreteWrenchspaceTransPtr.reset(new DiscreteWrenchSpace());
         computeTwsEll();
-        //std::cout << "bla" << std::endl;
+        std::cout << "bla" << std::endl;
         computeWrenchCones();
-        //std::cout << "bla1" << std::endl;
+        std::cout << "bla1" << std::endl;
         transformWrenches();
-        //std::cout << "bla3" << std::endl;
+        std::cout << "bla3" << std::endl;
         computeGWS();
-        //std::cout << "bla4" << std::endl;
+        std::cout << "bla4" << std::endl;
 
     }
     void recomputeQM(){
@@ -262,6 +269,7 @@ public:
     }
 };
 
+}//ns
 
 
 #endif // COMPUTEGRASPQUALITY_H

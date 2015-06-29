@@ -8,6 +8,8 @@
 
 //Grasp defined by list of contact points with normals and friction
 
+namespace GraspQm{
+
 typedef Eigen::Matrix<double,6,1> Vector6d;
 typedef unsigned int uint;
 
@@ -60,6 +62,6 @@ public:
 };
 
 
-
+}//ns
 
 #endif // GRASP_H

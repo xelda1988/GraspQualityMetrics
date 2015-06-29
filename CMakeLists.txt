@@ -3,7 +3,7 @@ PROJECT (graspSimulation)
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -fPIC" )
 #ADD_DEFINITIONS(-Wall)
 #ADD_DEFINITIONS(-Wno-c++11-extensions -Wno-unused-variable -Wno-unneeded-internal-declaration)
 
@@ -20,7 +20,8 @@ LINK_DIRECTORIES(${qhullDir}/build)
 INCLUDE_DIRECTORIES(${qhullDir}/src/libqhullcpp)
 INCLUDE_DIRECTORIES(include)
 
-SET(qhullLibs ${qhullDir}/build/libqhullcpp.a ${qhullDir}/build/libqhullstatic_p.a)
+#SET(qhullLibs ${qhullDir}/build/libqhullcpp.so ${qhullDir}/build/libqhull_p.so)
+SET(qhullLibs qhullcpp qhull_p)
                 
 #examples:
 #ADD_EXECUTABLE(qhullExample example/qhullExample.cpp)
@@ -45,7 +46,7 @@ TARGET_LINK_LIBRARIES(testWS ${qhullLibs})
 SET_TARGET_PROPERTIES(testWS PROPERTIES
     COMPILE_DEFINITIONS "qh_QHpointer")
 
-ADD_LIBRARY(graspQuality STATIC ${cppsources})
+ADD_LIBRARY(graspQuality SHARED ${cppsources})
 TARGET_LINK_LIBRARIES(graspQuality ${qhullLibs})
 SET_TARGET_PROPERTIES(graspQuality PROPERTIES
     COMPILE_DEFINITIONS "qh_QHpointer")

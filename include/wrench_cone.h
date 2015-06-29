@@ -7,6 +7,7 @@
 #include "grasp.h"
 
 //wrench cone computes the primitve wrenches to constructe the GWS from a single contact
+namespace GraspQm{
 
 class WrenchCone {
 
@@ -155,5 +156,6 @@ public:
 
 };
 
+}//ns
 
 #endif // WRENCH_CONE_H

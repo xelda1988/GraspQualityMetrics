@@ -9,6 +9,7 @@
 #define DEBUGQM 0
 
 using namespace std;
+using namespace GraspQm;
 
 int main(int argc, char** argv)
 {

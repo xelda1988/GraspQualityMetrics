@@ -1,5 +1,6 @@
 #include "grasp.h"
 
+namespace GraspQm{
 
 double Grasp::getMaxTorqueArm(){
 
@@ -14,3 +15,5 @@ double Grasp::getMaxTorqueArm(){
     }
     return largestDist;
 }
+
+}//ns

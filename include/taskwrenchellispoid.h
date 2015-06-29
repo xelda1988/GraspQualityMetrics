@@ -20,6 +20,7 @@
   Returns Transformation Matrix and Linear Transformation for Wrenches
 
   */
+namespace GraspQm{
 
 typedef Eigen::Matrix<double, 3, 400> MatSampledPts;
 
@@ -147,5 +148,7 @@ public:
 
 
 };
+
+}//ns
 
 #endif // TASKWRENCHELLISPOID_H

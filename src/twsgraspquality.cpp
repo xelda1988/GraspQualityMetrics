@@ -1,4 +1,8 @@
 #include "twsgraspquality.h"
+#define DEBUGQM 1
+
+namespace GraspQm{
+
 
 void twsGraspQuality::computeTransform(){
 
@@ -74,3 +78,5 @@ void twsGraspQuality::computeTransform(){
 twsGraspQuality::twsGraspQuality()
 {
 }
+
+}//ns

@@ -18,6 +18,7 @@
 #define EXPLORED_QUALIFIED   1
 #define EXPLORED_UNQUALIFIED 2
 
+namespace GraspQm{
 
 typedef unsigned int uint;
 typedef Eigen::Matrix<double,6,Eigen::Dynamic> Matrix6Xd;
@@ -93,5 +94,7 @@ public:
 };
 
 typedef std::tr1::shared_ptr<DiscreteWrenchSpace> DiscreteWrenchSpacePtr;
+
+}//ns
 
 #endif // WRENCHSPACE_H
