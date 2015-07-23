@@ -81,17 +81,17 @@ orgQhull::Qhull const* DiscreteWrenchSpace::getConvexHull()const
 //--------------------------------------------------------------------------
 void DiscreteWrenchSpace::computeConvexHull()
 {
-  // #define DEBUG_QHULL
+    //std::cout << "[Debug] inside compute convex Hull\n" << std::flush;
+  #define DEBUG_QHULL
   assert(wrenches_.get() != NULL);
   assert(num_wrenches_ > dimension_);
-
+  //std::cout << "[Debug] inside compute convex Hull\n" << std::flush;
   try{
-
-
     conv_hull_.runQhull("", dimension_,num_wrenches_,wrenches_.get() ,"Q0 Qt"); //Qx doesn't merge coplanar facets, Q0 does, QJ joggles
   }
   catch(std::exception& exc)
     {
+//#define     DEBUG_QHULL
 #ifdef DEBUG_QHULL
   std::cout<<exc.what()<<std::endl;
 #endif

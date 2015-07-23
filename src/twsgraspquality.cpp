@@ -1,5 +1,5 @@
 #include "twsgraspquality.h"
-#define DEBUGQM 1
+#define DEBUGQM 0
 
 namespace GraspQm{
 
@@ -8,6 +8,7 @@ void twsGraspQuality::computeTransform(){
 
     wrenches_out_.clear();
     wrenches_vector_out_.clear();
+    toPtr.clear();
 
 
     Eigen::Matrix3d fScale = semiAxesForces_.asDiagonal().inverse();

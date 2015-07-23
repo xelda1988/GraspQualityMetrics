@@ -1,24 +1,26 @@
-# Grasp-Simulation-Vrep
+# GraspQualityMetrics
 
 Software capabilities:
 
-Perform a grasp in simulation and read out contact normals and mesh for 
-template generation - Template includes Pointcloud 
+Perform a grasp in simulation and read out contact points, contact normals and mesh/pointcloud for template generation.
+Contact points can be clustered and used for Quality Measure Computation.
 
 Dependencies:
 
-    ROS
     qhull
+    vrep
+    ROS
     
 Installation of qhull:
 
-    wget http://www.qhull.org/download/qhull-2012.1-src.tgz
-* Untar 
-* In libqhull/user.h set qh_QHpointer 1
-* Install with Cmake installation script
+    git clone https://github.com/xelda1988/qhull-2012.1.git
+    mkdir build && cd build
+    cmake ..
+    make
 
-Installation of Project Grasp-Simulation-Vrep:
-* In CMakeLists modify Line 14: SET(qhullDir "yourQhullBaseDirectory") 
+Installation of the Project GraspQualityMetrics:
+
+* In CMakeLists modify Line 14: SET(qhullDir "<yourQhullDirectory>") 
 
 Needs:
 
@@ -26,7 +28,15 @@ Needs:
 
 Functions:
 
-Module Simulation Control
+Library GraspQualityMetrics
+
+    computeGraspWrenchSpace
+    visualizeGraspWrenchSpace
+    computeTaskWrenchSpace
+    visualizeTaskWrenchSpace
+    computeQualityMeasure
+
+Module ContactPointGeneration
 
     setGripperPose
     setGripperJoints
@@ -43,11 +53,3 @@ Module Simulation Control
     getObjCenter
     getTactileMatrices
     getGripperJoints
-
-Module Grasp Quality Measures
-
-    computeGraspWrenchSpace
-    visualizeGraspWrenchSpace
-    computeTaskWrenchSpace
-    visualizeTaskWrenchSpace
-    computeQualityMeasure

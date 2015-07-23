@@ -96,7 +96,7 @@ private:
         wrenchCones.addZeroToWrenches(); //adding zero force grasp
 
         wrenchVec = wrenchCones.get6dEigen();
-
+        //std::cout << "Adress " << &wrenchVec << std::endl;
     }
     //periodic
     void recomputeHandToEllipse(){
@@ -105,6 +105,11 @@ private:
     }
 
     void transformWrenches(){
+#ifdef DEBUGGQM
+        std::cout << "Nr Wrenches before Computation" << std::endl;
+        std::cout << wrenchVec.size() << std::endl;
+        std::cout << "Adress " << &wrenchVec << std::endl;
+#endif
         gwsTransform.setParams(wrenchVec,
                                hand_to_ellipse,
                                semiAxesTorque,
@@ -114,6 +119,10 @@ private:
         //gwsTransform.getOutput(wrenchPtrTrans,nrWrenches);
 
         std::vector<double> wrenchTransformed=gwsTransform.getVector();
+#ifdef DEBUGGQM
+        std::cout << "Nr Wrenches after Computation" << std::endl;
+        std::cout << wrenchTransformed.size()/6 << std::endl;
+#endif
         int vecSize = wrenchTransformed.size();
         double* copyVec = new double[vecSize];
         //double copyVec[vecSize];
@@ -143,21 +152,27 @@ private:
 
     void computeGWS(){
 
-        coutSharedPtr();
+        //coutSharedPtr();
 
         //DiscreteWrenchSpace * test = new DiscreteWrenchSpace;
         //discreteWrenchspaceTrans;
         //DiscreteWrenchSpace tmp;
         //discreteWrenchspaceTrans = tmp;
+#ifdef DEBUGGQM
+        std::cout << "Before Setting" <<endl;
         std::cout << *discreteWrenchspaceTransPtr <<endl;
+#endif
         discreteWrenchspaceTransPtr->setWrenches(6,wrenchPtrTrans,nrWrenches);
 
+#ifdef DEBUGGQM
+        std::cout << "After Setting" <<endl;
         std::cout << *discreteWrenchspaceTransPtr <<endl;
+#endif
         //discreteWrenchspaceTrans.
         discreteWrenchspaceTransPtr->computeConvexHull();
-
+#ifdef DEBUGGQM
         std::cout << *discreteWrenchspaceTransPtr <<endl;
-
+#endif
         roc_insphere=discreteWrenchspaceTransPtr->getOcInsphereRadius();
     }
 
